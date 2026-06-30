@@ -1,10 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(bun:*)",
-      "Bash(bunx:*)",
-      "Bash(npx:*)",
-      "Bash(tsc:*)"
+      "Bash(bun install)",
+      "Bash(bun run compile)",
+      "Bash(bun run watch)",
+      "Bash(bun run package)"
     ]
   }
 }
