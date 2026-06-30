@@ -1,0 +1,11 @@
+# Build output
+dist/
+*.vsix
+*.tsbuildinfo
+
+# Node / Bun
+node_modules/
+.bun/
+
+# OS
+.DS_Store
