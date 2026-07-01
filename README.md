@@ -29,6 +29,10 @@ If your docs don't live in `docs/`, drop a `.doclink` file at the workspace root
 
 `@doc:` paths then resolve relative to `<workspace-root>/documentation` instead. No `.doclink` file, or a missing/invalid `docsDir` key, falls back to `docs/`.
 
+## Autocomplete
+
+Type `@doc:` and a suggestion list pops up with every `.md` file found in the docs dir (recursively), plus an **➕ Create new doc...** entry. Picking a file inserts its path. Picking "Create new doc" prompts for a filename, creates a stub file (`# Title`) in the docs dir, inserts its path at the cursor, and opens the new file beside your code so you can start writing immediately.
+
 ## Requirements
 
 - [Bun](https://bun.sh) ≥ 1.0
