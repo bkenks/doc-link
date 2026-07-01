@@ -16,6 +16,10 @@
       {
         "command": "docLink.open",
         "title": "Doc Link: Open Linked Doc"
+      },
+      {
+        "command": "docLink.createDoc",
+        "title": "Doc Link: Create New Doc"
       }
     ]
   },

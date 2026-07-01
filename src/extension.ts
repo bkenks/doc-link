@@ -30,6 +30,25 @@ function resolveDocsDir(workspaceRoot: string): string {
   return DEFAULT_DOCS_DIR;
 }
 
+function listMarkdownFiles(docsRoot: string): string[] {
+  if (!fs.existsSync(docsRoot)) {
+    return [];
+  }
+  const results: string[] = [];
+  const walk = (dir: string): void => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(fullPath);
+      } else if (entry.isFile() && entry.name.endsWith(".md")) {
+        results.push(path.relative(docsRoot, fullPath).split(path.sep).join("/"));
+      }
+    }
+  };
+  walk(docsRoot);
+  return results;
+}
+
 class DocLinkCodeLensProvider implements vscode.CodeLensProvider {
   provideCodeLenses(document: vscode.TextDocument): vscode.CodeLens[] {
     const lenses: vscode.CodeLens[] = [];
@@ -57,6 +76,83 @@ class DocLinkCodeLensProvider implements vscode.CodeLensProvider {
 
     return lenses;
   }
+}
+
+class DocLinkCompletionItemProvider implements vscode.CompletionItemProvider {
+  provideCompletionItems(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+  ): vscode.CompletionList | undefined {
+    const linePrefix = document.lineAt(position).text.slice(0, position.character);
+    const match = linePrefix.match(/@doc:\s*(\S*)$/);
+    if (!match) {
+      return undefined;
+    }
+
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+    if (!workspaceFolder) {
+      return undefined;
+    }
+
+    const typed = match[1];
+    const range = new vscode.Range(position.translate(0, -typed.length), position);
+    const docsDir = resolveDocsDir(workspaceFolder.uri.fsPath);
+    const docsRoot = path.join(workspaceFolder.uri.fsPath, docsDir);
+
+    const items = listMarkdownFiles(docsRoot).map((relPath) => {
+      const item = new vscode.CompletionItem(relPath, vscode.CompletionItemKind.File);
+      item.insertText = relPath;
+      item.range = range;
+      return item;
+    });
+
+    const createItem = new vscode.CompletionItem("➕ Create new doc...", vscode.CompletionItemKind.Event);
+    createItem.insertText = "";
+    createItem.range = range;
+    createItem.filterText = typed;
+    createItem.sortText = "~"; // sort after real files
+    createItem.command = {
+      command: "docLink.createDoc",
+      title: "Create new doc",
+      arguments: [workspaceFolder.uri.fsPath, docsDir],
+    };
+    items.push(createItem);
+
+    return new vscode.CompletionList(items, true);
+  }
+}
+
+async function createDoc(workspaceRoot: string, docsDir: string): Promise<void> {
+  const name = await vscode.window.showInputBox({
+    prompt: "New doc filename (relative to the docs dir)",
+    placeHolder: "feature-name.md",
+    validateInput: (value) => (value.trim().length === 0 ? "Filename required" : undefined),
+  });
+  if (!name) {
+    return;
+  }
+
+  const relPath = name.endsWith(".md") ? name : `${name}.md`;
+  const fullPath = path.resolve(workspaceRoot, docsDir, relPath);
+
+  if (!fs.existsSync(fullPath)) {
+    fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+    const title = path
+      .basename(relPath, ".md")
+      .replace(/[-_]/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+    fs.writeFileSync(fullPath, `# ${title}\n`);
+  }
+
+  const editor = vscode.window.activeTextEditor;
+  if (editor) {
+    await editor.edit((editBuilder) => {
+      editBuilder.insert(editor.selection.active, relPath);
+    });
+  }
+
+  const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(fullPath));
+  await vscode.window.showTextDocument(doc, { viewColumn: vscode.ViewColumn.Beside, preserveFocus: false });
 }
 
 async function openDocLink(uri: vscode.Uri, target: string): Promise<void> {
@@ -100,7 +196,17 @@ async function openDocLink(uri: vscode.Uri, target: string): Promise<void> {
 export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.languages.registerCodeLensProvider({ scheme: "file" }, new DocLinkCodeLensProvider()),
+    vscode.languages.registerCompletionItemProvider(
+      { scheme: "file" },
+      new DocLinkCompletionItemProvider(),
+      ":",
+      "/",
+      ".",
+      "-",
+      " ",
+    ),
     vscode.commands.registerCommand("docLink.open", openDocLink),
+    vscode.commands.registerCommand("docLink.createDoc", createDoc),
   );
 }
 
