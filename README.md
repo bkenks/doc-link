@@ -15,6 +15,8 @@ The path is resolved relative to a `docs/` folder at the root of your workspace 
 
 A "📄 Open doc" CodeLens appears above the line. Click it and the target markdown file opens beside your code, editable. If you add a `#slug` anchor, it jumps to and selects the matching `## Heading` in that file (slugified the same way GitHub does: lowercased, punctuation stripped, spaces → hyphens).
 
+Hovering over the marker shows a rendered preview instead — the whole file (first 15 lines) if there's no anchor, or just that heading's section if there is, so you can read without leaving the line.
+
 The marker is just a relative path in a plain comment, so it's tracked by git like everything else — no database, no service, no sync step.
 
 ## Configuring the docs directory
