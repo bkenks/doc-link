@@ -7,13 +7,27 @@ Click a `@doc:` marker in any code comment to open the linked markdown doc in a 
 Drop a marker in any comment, in any language:
 
 ```js
-// @doc: ./docs/auth.md#token-refresh
+// @doc: auth.md#token-refresh
 function refreshToken() { ... }
 ```
+
+The path is resolved relative to a `docs/` folder at the root of your workspace — not relative to the file the comment lives in. So `auth.md` above means `<workspace-root>/docs/auth.md`, regardless of where `refreshToken` is defined.
 
 A "📄 Open doc" CodeLens appears above the line. Click it and the target markdown file opens beside your code, editable. If you add a `#slug` anchor, it jumps to and selects the matching `## Heading` in that file (slugified the same way GitHub does: lowercased, punctuation stripped, spaces → hyphens).
 
 The marker is just a relative path in a plain comment, so it's tracked by git like everything else — no database, no service, no sync step.
+
+## Configuring the docs directory
+
+If your docs don't live in `docs/`, drop a `.doclink` file at the workspace root:
+
+```json
+{
+  "docsDir": "documentation"
+}
+```
+
+`@doc:` paths then resolve relative to `<workspace-root>/documentation` instead. No `.doclink` file, or a missing/invalid `docsDir` key, falls back to `docs/`.
 
 ## Requirements
 
