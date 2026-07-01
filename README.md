@@ -62,3 +62,11 @@ This produces `doc-link-0.1.0.vsix`. In VSCodium: open the Extensions view → `
 ```sh
 codium --install-extension doc-link-0.1.0.vsix
 ```
+
+## Publish a GitHub release
+
+```sh
+bun run release
+```
+
+Bump `"version"` in `package.json` first. This reads that version, packages the `.vsix`, and publishes it as a GitHub release (`.scripts/release.sh`) tagged `v<version>` via `gh release create`.

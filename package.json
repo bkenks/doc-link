@@ -27,7 +27,8 @@
     "compile": "tsc -p ./",
     "watch": "tsc -p ./ -w",
     "vscode:prepublish": "bun run compile",
-    "package": "bunx @vscode/vsce package"
+    "package": "bunx @vscode/vsce package",
+    "release": "bash .scripts/release.sh"
   },
   "devDependencies": {
     "@types/node": "^20",
