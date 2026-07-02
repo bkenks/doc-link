@@ -62,3 +62,12 @@ This produces `doc-link-0.1.0.vsix`. In VSCodium: open the Extensions view → `
 ```sh
 codium --install-extension doc-link-0.1.0.vsix
 ```
+
+## Publish a GitHub release
+
+```sh
+bun run release          # bumps the patch version (0.1.0 -> 0.1.1)
+bun run release 0.2.0     # or set an exact version, for major/minor bumps
+```
+
+`.scripts/release.sh` requires a clean working tree, writes the new version into `package.json`, commits and pushes that (`Release vX.Y.Z`), packages the `.vsix`, and publishes it as a GitHub release tagged `vX.Y.Z` via `gh release create`. Refuses to run if that tag already exists.
